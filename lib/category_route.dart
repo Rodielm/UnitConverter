@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:unitconverter_app/backdrop.dart';
 import 'package:unitconverter_app/category.dart';
@@ -33,6 +35,7 @@ class _CategoryRouteState extends State<CategoryRoute> {
   Category _defaultCategory;
   Category _currentCategory;
   final _categories = <Category>[];
+
   static const _categoryNames = <String>[
     'Length',
     'Area',
@@ -81,22 +84,63 @@ class _CategoryRouteState extends State<CategoryRoute> {
   ];
 
   @override
-  void initState() {
-    super.initState();
+  Future<void> didChangeDependencies() async {
+    super.didChangeDependencies();
 
-    for (var i = 0; i < _categoryNames.length; i++) {
-      var category = Category(
-        name: _categoryNames[i],
-        color: _baseColors[i],
-        iconLocation: Icons.cake,
-        units: _retrieveUnitList(_categoryNames[i]),
-      );
-      if (i == 0) {
-        _defaultCategory = category;
-      }
-      _categories.add(category);
+    if (_categories.isEmpty) {
+     await _retrieveLocalCategories();
     }
   }
+
+  Future<void> _retrieveLocalCategories() async {
+    final json =
+        DefaultAssetBundle.of(context).loadString('assets/data/data.json');
+
+    final data = JsonDecoder().convert(await json);
+
+    if (data is! Map) {
+      throw ('Data retrieved from API is not a Map');
+    }
+
+    var categoryIndex = 0;
+
+    data.keys.forEach((key) {
+      final List<Unit> units =
+          data[key].map<Unit>((dynamic data) => Unit.fromJson(data)).toList();
+
+      var category = Category(
+        name: key,
+        units: units,
+        color: _baseColors[categoryIndex],
+        iconLocation: Icons.cake,
+      );
+      setState(() {
+        if (categoryIndex == 0) {
+          _defaultCategory = category;
+        }
+        _categories.add(category);
+      });
+      categoryIndex += 1;
+    });
+  }
+
+//  @override
+//  void initState() {
+//    super.initState();
+//
+//    for (var i = 0; i < _categoryNames.length; i++) {
+//      var category = Category(
+//        name: _categoryNames[i],
+//        color: _baseColors[i],
+//        iconLocation: Icons.cake,
+//        units: _retrieveUnitList(_categoryNames[i]),
+//      );
+//      if (i == 0) {
+//        _defaultCategory = category;
+//      }
+//      _categories.add(category);
+//    }
+//  }
 
   void _onCategoryTap(Category category) {
     setState(() {
