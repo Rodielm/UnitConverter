@@ -16,7 +16,7 @@ import 'package:unitconverter_app/unit.dart';
 class Category {
   final String name;
   final ColorSwatch color;
-  final IconData iconLocation;
+  final String iconLocation;
   final List<Unit> units;
 
   const Category({
@@ -55,6 +55,7 @@ class Category {
 //    );
 //  }
 
+//This a definition of UI.
 //  @override
 // This `context` parameter describes the location of this widget in the
 // widget tree. It can be used for obtaining Theme data from the nearest
